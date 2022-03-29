@@ -1,0 +1,15 @@
+networks:
+  default: development
+
+dependencies:
+  - OpenZeppelin/openzeppelin-contracts@4.0.0
+  - OwlOfMoistness/erc721-lock-registry@1.0.0
+
+compiler:
+  solc:
+    version: 0.8.2
+    remappings:
+      - "@owl=OwlOfMoistness/erc721-lock-registry@1.0.0"
+      - "@openzeppelin=OpenZeppelin/openzeppelin-contracts@4.0.0"
+
+autofetch_sources: true
