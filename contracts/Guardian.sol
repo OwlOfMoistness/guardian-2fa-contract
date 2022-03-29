@@ -20,6 +20,12 @@ contract Guardian {
 
 	ILockERC721 public immutable LOCKABLE;
 
+	mapping(address => address) public guardians;
+	mapping(address => UserData) public userData;
+	mapping(address => mapping(uint256 => address)) public guardianToUsers;
+	mapping(address => mapping(address => uint256)) public guardianToUserIndex;
+	mapping(address => uint256) public guardianUserCount;
+
 	event GuardianSet(address indexed guardian, address indexed user);
 	event GuardianRenounce(address indexed guardian, address indexed user);
 
@@ -27,26 +33,28 @@ contract Guardian {
 		LOCKABLE = ILockERC721(_lockable);
 	}
 
-	mapping(address => address) public guardians;
-	mapping(address => UserData) public userData;
-
 	function setGuardian(address _guardian) external {
 		require(guardians[msg.sender] == address(0), "Guardian set");
+
 		guardians[msg.sender] = _guardian;
 		userData[msg.sender].guardian = _guardian;
+		_pushGuardianrray(_guardian, msg.sender);
 		emit GuardianSet(_guardian, msg.sender);
 	}
 
-	function renounce(address _tokenOwner) external {
-		require(guardians[_tokenOwner] == msg.sender, "!guardian");
-		guardians[_tokenOwner] = address(0);
-		userData[_tokenOwner].guardian = address(0);
-		emit GuardianRenounce(msg.sender, _tokenOwner);
+	function renounce(address _protege) external {
+		require(guardians[_protege] == msg.sender, "!guardian");
+
+		guardians[_protege] = address(0);
+		userData[_protege].guardian = address(0);
+		_popGuardianrray(msg.sender, _protege);
+		emit GuardianRenounce(msg.sender, _protege);
 	}
 
 	function lockMany(uint256[] calldata _tokenIds) external {
 		address owner = LOCKABLE.ownerOf(_tokenIds[0]);
 		require(guardians[owner] == msg.sender, "!guardian");
+
 		UserData storage _userData = userData[owner];
 		uint256 len = _userData.lockedAssets.length;
 		for (uint256 i = 0; i < _tokenIds.length; i++) {
@@ -59,6 +67,7 @@ contract Guardian {
 	function unlockMany(uint256[] calldata _tokenIds) external {
 		address owner = LOCKABLE.ownerOf(_tokenIds[0]);
 		require(guardians[owner] == msg.sender, "!guardian");
+
 		UserData storage _userData = userData[owner];
 		uint256 len = _userData.lockedAssets.length;
 		for (uint256 i = 0; i < _tokenIds.length; i++) {
@@ -71,6 +80,7 @@ contract Guardian {
 	function unlockManyAndTransfer(uint256[] calldata _tokenIds, address _recipient) external {
 		address owner = LOCKABLE.ownerOf(_tokenIds[0]);
 		require(guardians[owner] == msg.sender, "!guardian");
+
 		UserData storage _userData = userData[owner];
 		uint256 len = _userData.lockedAssets.length;
 		for (uint256 i = 0; i < _tokenIds.length; i++) {
@@ -101,5 +111,20 @@ contract Guardian {
 		_userData.assetToIndex[lastId] = index;
 		_userData.lockedAssets[index] = lastId;
 		_userData.lockedAssets.pop();
+	}
+
+	function _pushGuardianrray(address _guardian, address _protege) internal {
+		uint256 count = guardianUserCount[_guardian];
+		guardianToUsers[_guardian][count] = _protege;
+		guardianToUserIndex[_guardian][_protege] = count;
+		guardianUserCount[_guardian]++;
+	}
+
+	function _popGuardianrray(address _guardian, address _protege) internal {
+		uint256 index = guardianToUserIndex[_guardian][_protege];
+		delete guardianToUserIndex[_guardian][_protege];
+		guardianToUsers[_guardian][index] = guardianToUsers[_guardian][guardianUserCount[_guardian] - 1];
+		delete guardianToUsers[_guardian][guardianUserCount[_guardian] - 1];
+		guardianUserCount[_guardian]--;
 	}
 }

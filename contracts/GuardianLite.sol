@@ -14,14 +14,14 @@ contract GuardianLite {
 
 	ILockERC721 public immutable LOCKABLE;
 
+	mapping(address => address) public guardians;
+
 	event GuardianSet(address indexed guardian, address indexed user);
 	event GuardianRenounce(address indexed guardian, address indexed user);
 
 	constructor(address _lockable) public {
 		LOCKABLE = ILockERC721(_lockable);
 	}
-
-	mapping(address => address) public guardians;
 
 	function setGuardian(address _guardian) external {
 		require(guardians[msg.sender] == address(0), "Guardian set");
