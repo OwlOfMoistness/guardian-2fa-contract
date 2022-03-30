@@ -102,4 +102,15 @@ def test_guardian_retrieve_not_locked(nft_lock, guardian, minter_, accounts):
 	guardian.lockMany([1, 2, 3, 4, 5], {'from':accounts[1]})
 	guardian.unlockManyAndTransfer([1, 2, 3, 4, 5], accounts[4], {'from':accounts[1]})
 
-	
+def test_guarduan_many_users(nft_lock, guardian, minter_, accounts):
+	for i in range(3, 8):
+		guardian.setGuardian(accounts[2], {'from':accounts[i]})
+	assert guardian.guardianUserCount(accounts[2]) == 5
+	assert guardian.getProtegesFromGuardian(accounts[2]) == [accounts[3],accounts[4],accounts[5],accounts[6],accounts[7]]
+	guardian.renounce(accounts[5], {'from':accounts[2]})
+	assert guardian.guardianUserCount(accounts[2]) == 4
+	assert guardian.getProtegesFromGuardian(accounts[2]) == [accounts[3],accounts[4],accounts[7],accounts[6]]
+
+	guardian.renounce(accounts[3], {'from':accounts[2]})
+	assert guardian.guardianUserCount(accounts[2]) == 3
+	assert guardian.getProtegesFromGuardian(accounts[2]) == [accounts[6],accounts[4],accounts[7]]

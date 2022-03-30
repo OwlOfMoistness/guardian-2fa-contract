@@ -99,6 +99,14 @@ contract Guardian {
 		}
 	}
 
+	function getProtegesFromGuardian(address _guardian) external view returns(address[] memory proteges) {
+		uint256 len = guardianUserCount[_guardian];
+		proteges = new address[](len);
+		for (uint256 i = 0; i < len; i++) {
+			proteges[i] = guardianToUsers[_guardian][i];
+		}
+	}
+
 	function _pushTokenInArray(UserData storage _userData, uint256 _token, uint256 _index) internal {
 		_userData.lockedAssets.push(_token);
 		_userData.assetToIndex[_token] = _index;
