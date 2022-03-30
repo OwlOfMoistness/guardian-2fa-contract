@@ -86,4 +86,7 @@ def test_guardian_retrieve_not_locked(nft_lock, guardian_lite, minter_, accounts
 	guardian_lite.lockMany([1, 2, 3, 4, 5], {'from':accounts[1]})
 	guardian_lite.unlockManyAndTransfer([1, 2, 3, 4, 5], accounts[4], {'from':accounts[1]})
 
+def test_guardian_same_as_sender(guardian_lite, accounts):
+	with reverts('Guardian must be a different wallet'):
+		guardian_lite.setGuardian(accounts[5], {'from':accounts[5]})
 	
