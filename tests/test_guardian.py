@@ -114,3 +114,7 @@ def test_guarduan_many_users(nft_lock, guardian, minter_, accounts):
 	guardian.renounce(accounts[3], {'from':accounts[2]})
 	assert guardian.guardianUserCount(accounts[2]) == 3
 	assert guardian.getProtegesFromGuardian(accounts[2]) == [accounts[6],accounts[4],accounts[7]]
+
+def test_guardian_same_as_sender(guardian, accounts):
+	with reverts('Guardian must be a different wallet'):
+		guardian.setGuardian(accounts[5], {'from':accounts[5]})

@@ -25,6 +25,7 @@ contract GuardianLite {
 
 	function setGuardian(address _guardian) external {
 		require(guardians[msg.sender] == address(0), "Guardian set");
+		require(msg.sender != _guardian, "Guardian must be a different wallet");
 		guardians[msg.sender] = _guardian;
 		emit GuardianSet(_guardian, msg.sender);
 	}
