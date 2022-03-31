@@ -100,6 +100,16 @@ contract Guardian {
 		}
 	}
 
+	function getLockedAssetsOfUsers(address _user, uint256 _startIndex, uint256 _maxLen) external view returns(uint256[] memory lockedAssets) {
+		uint256 len = userData[_user].lockedAssets.length;
+
+		_maxLen = (len - _startIndex) < _maxLen  ? len - _startIndex : _maxLen;
+		lockedAssets = new uint256[](_maxLen);
+		for (uint256 i = _startIndex; i < _startIndex + _maxLen; i++) {
+			lockedAssets[i] = userData[_user].lockedAssets[i];
+		}
+	}
+
 	function getProtegesFromGuardian(address _guardian) external view returns(address[] memory proteges) {
 		uint256 len = guardianUserCount[_guardian];
 		proteges = new address[](len);
