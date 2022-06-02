@@ -39,7 +39,7 @@ contract Guardian {
 
 		guardians[msg.sender] = _guardian;
 		userData[msg.sender].guardian = _guardian;
-		_pushGuardianrray(_guardian, msg.sender);
+		_pushGuardianArray(_guardian, msg.sender);
 		emit GuardianSet(_guardian, msg.sender);
 	}
 
@@ -48,7 +48,7 @@ contract Guardian {
 
 		guardians[_protege] = address(0);
 		userData[_protege].guardian = address(0);
-		_popGuardianrray(msg.sender, _protege);
+		_popGuardianArray(msg.sender, _protege);
 		emit GuardianRenounce(msg.sender, _protege);
 	}
 
@@ -137,14 +137,14 @@ contract Guardian {
 		_userData.lockedAssets.pop();
 	}
 
-	function _pushGuardianrray(address _guardian, address _protege) internal {
+	function _pushGuardianArray(address _guardian, address _protege) internal {
 		uint256 count = guardianUserCount[_guardian];
 		guardianToUsers[_guardian][count] = _protege;
 		guardianToUserIndex[_guardian][_protege] = count;
 		guardianUserCount[_guardian]++;
 	}
 
-	function _popGuardianrray(address _guardian, address _protege) internal {
+	function _popGuardianArray(address _guardian, address _protege) internal {
 		uint256 index = guardianToUserIndex[_guardian][_protege];
 		delete guardianToUserIndex[_guardian][_protege];
 		guardianToUsers[_guardian][index] = guardianToUsers[_guardian][guardianUserCount[_guardian] - 1];
