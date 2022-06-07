@@ -14,20 +14,32 @@ contract GuardianLite {
 
 	ILockERC721 public immutable LOCKABLE;
 
+	mapping(address => address) public pendingGuardians;
 	mapping(address => address) public guardians;
 
 	event GuardianSet(address indexed guardian, address indexed user);
 	event GuardianRenounce(address indexed guardian, address indexed user);
+	event PendingGuardianSet(address indexed pendingGuardian, address indexed user);
+
 
 	constructor(address _lockable) public {
 		LOCKABLE = ILockERC721(_lockable);
 	}
 
-	function setGuardian(address _guardian) external {
+	function proposeGuardian(address _guardian) external {
 		require(guardians[msg.sender] == address(0), "Guardian set");
 		require(msg.sender != _guardian, "Guardian must be a different wallet");
-		guardians[msg.sender] = _guardian;
-		emit GuardianSet(_guardian, msg.sender);
+
+		pendingGuardians[msg.sender] = _guardian;
+		emit PendingGuardianSet(_guardian, msg.sender);
+	}
+
+	function acceptGuardianship(address _protege) external {
+		require(pendingGuardians[_protege] == msg.sender, "Not the pending guardian");
+
+		pendingGuardians[_protege] = address(0);
+		guardians[_protege] = msg.sender;
+		emit GuardianSet(msg.sender, _protege);
 	}
 
 	function renounce(address _tokenOwner) external {

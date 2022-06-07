@@ -6,10 +6,14 @@ def test_guardian_set(nft_lock, guardian, minter_, accounts):
 		nft_lock.mint(i + 1, caller)
 	nft_lock.updateApprovedContracts([guardian], [True], caller)
 
-	guardian.setGuardian(accounts[2], {'from':minter_})
+	guardian.proposeGuardian(accounts[2], {'from':minter_})
+	assert guardian.guardians(minter_) == '0x0000000000000000000000000000000000000000'
+	with reverts('Not the pending guardian'):
+		guardian.acceptGuardianship(minter_, {'from':accounts[3]})
+	guardian.acceptGuardianship(minter_, {'from':accounts[2]})
 	assert guardian.guardians(minter_) == accounts[2]
 	with reverts('Guardian set'):
-		guardian.setGuardian(accounts[3], {'from':minter_})
+		guardian.proposeGuardian(accounts[3], {'from':minter_})
 
 def test_guardian_lock(nft_lock, guardian, minter_, accounts):
 	caller = {'from':minter_}
@@ -71,7 +75,8 @@ def test_guardian_renounce(nft_lock, guardian, minter_, accounts):
 
 def test_guardian_new_guardian(nft_lock, guardian, minter_, accounts):
 	caller = {'from':minter_}
-	guardian.setGuardian(accounts[1], {'from':minter_})
+	guardian.proposeGuardian(accounts[1], {'from':minter_})
+	guardian.acceptGuardianship(minter_, {'from':accounts[1]})
 	guardian.unlockMany([1, 2, 3, 4, 5], {'from':accounts[1]})
 	for i in range(1, 6):
 		assert nft_lock.lockCount(i) == 0
@@ -104,7 +109,8 @@ def test_guardian_retrieve_not_locked(nft_lock, guardian, minter_, accounts):
 
 def test_guarduan_many_users(nft_lock, guardian, minter_, accounts):
 	for i in range(3, 8):
-		guardian.setGuardian(accounts[2], {'from':accounts[i]})
+		guardian.proposeGuardian(accounts[2], {'from':accounts[i]})
+		guardian.acceptGuardianship(accounts[i], {'from':accounts[2]})
 	assert guardian.guardianUserCount(accounts[2]) == 5
 	assert guardian.getProtegesFromGuardian(accounts[2]) == [accounts[3],accounts[4],accounts[5],accounts[6],accounts[7]]
 	guardian.renounce(accounts[5], {'from':accounts[2]})
@@ -117,4 +123,4 @@ def test_guarduan_many_users(nft_lock, guardian, minter_, accounts):
 
 def test_guardian_same_as_sender(guardian, accounts):
 	with reverts('Guardian must be a different wallet'):
-		guardian.setGuardian(accounts[5], {'from':accounts[5]})
+		guardian.proposeGuardian(accounts[5], {'from':accounts[5]})

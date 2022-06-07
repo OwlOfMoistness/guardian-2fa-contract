@@ -6,10 +6,14 @@ def test_guardian_set(nft_lock, guardian_lite, minter_, accounts):
 		nft_lock.mint(i + 1, caller)
 	nft_lock.updateApprovedContracts([guardian_lite], [True], caller)
 
-	guardian_lite.setGuardian(accounts[2], {'from':minter_})
+	guardian_lite.proposeGuardian(accounts[2], {'from':minter_})
+	assert guardian_lite.guardians(minter_) == '0x0000000000000000000000000000000000000000'
+	with reverts('Not the pending guardian'):
+		guardian_lite.acceptGuardianship(minter_, {'from':accounts[3]})
+	guardian_lite.acceptGuardianship(minter_, {'from':accounts[2]})
 	assert guardian_lite.guardians(minter_) == accounts[2]
 	with reverts('Guardian set'):
-		guardian_lite.setGuardian(accounts[3], {'from':minter_})
+		guardian_lite.proposeGuardian(accounts[3], {'from':minter_})
 
 def test_guardian_lock(nft_lock, guardian_lite, minter_, accounts):
 	caller = {'from':minter_}
@@ -55,7 +59,8 @@ def test_guardian_renounce(nft_lock, guardian_lite, minter_, accounts):
 
 def test_guardian_new_guardian(nft_lock, guardian_lite, minter_, accounts):
 	caller = {'from':minter_}
-	guardian_lite.setGuardian(accounts[1], {'from':minter_})
+	guardian_lite.proposeGuardian(accounts[1], {'from':minter_})
+	guardian_lite.acceptGuardianship(minter_, {'from':accounts[1]})
 	guardian_lite.unlockMany([1, 2, 3, 4, 5], {'from':accounts[1]})
 	for i in range(1, 6):
 		assert nft_lock.lockCount(i) == 0
@@ -88,5 +93,5 @@ def test_guardian_retrieve_not_locked(nft_lock, guardian_lite, minter_, accounts
 
 def test_guardian_same_as_sender(guardian_lite, accounts):
 	with reverts('Guardian must be a different wallet'):
-		guardian_lite.setGuardian(accounts[5], {'from':accounts[5]})
+		guardian_lite.proposeGuardian(accounts[5], {'from':accounts[5]})
 	
